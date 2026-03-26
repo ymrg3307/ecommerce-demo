@@ -1,11 +1,10 @@
 # CTT Shopping Demo
 
-Minimal final-demo implementation for the CTT online shopping website.
+Minimal local frontend demo for the CTT online shopping website.
 
-## Apps
+## App
 
-- `frontend`: React + Vite demo UI
-- `backend`: NestJS API with MongoDB Atlas and DynamoDB integrations
+- `frontend`: React + Vite demo UI with local dummy data
 
 ## Demo flows
 
@@ -17,10 +16,6 @@ Minimal final-demo implementation for the CTT online shopping website.
 ## Local setup
 
 1. Install dependencies: `npm install`
-2. Copy env files:
-   - `cp frontend/.env.example frontend/.env`
-   - `cp backend/.env.example backend/.env`
-3. Start backend: `npm run dev --workspace backend`
-4. Start frontend: `npm run dev --workspace frontend`
+2. Start the app: `npm run dev`
 
-The backend supports a seeded in-memory fallback when MongoDB or DynamoDB are not configured, so the demo can still run locally before cloud resources are connected.
+The current branch is intentionally frontend-only and uses local mock data so you can present the UI without backend or database setup. The earlier full-stack work is preserved on the `full-stack-wip` branch.
