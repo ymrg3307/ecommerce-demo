@@ -4,11 +4,12 @@ import { demoConfig } from '../config/demo';
 
 export function AppLayout() {
   const { user, logout } = useAuth();
+  const homePath = user ? '/search' : '/login';
 
   return (
     <div className="shell">
       <header className="topbar">
-        <Link className="brand" to="/search">
+        <Link className="brand" to={homePath}>
           <span className="brand-mark">CTT</span>
           <div>
             <strong>Online Shopping Demo</strong>

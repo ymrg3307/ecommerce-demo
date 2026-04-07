@@ -6,7 +6,11 @@ import { SearchPage } from './pages/SearchPage';
 import { useAuth } from './state/auth';
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { user } = useAuth();
+  const { initialized, user } = useAuth();
+
+  if (!initialized) {
+    return null;
+  }
 
   if (!user) {
     return <Navigate to="/login" replace />;

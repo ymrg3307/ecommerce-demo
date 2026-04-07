@@ -5,9 +5,15 @@ import {
   useEffect,
   useState
 } from 'react';
-import { login as loginRequest, logout as logoutRequest, SessionUser } from '../lib/api';
+import {
+  getSession,
+  login as loginRequest,
+  logout as logoutRequest,
+  SessionUser
+} from '../lib/api';
 
 type AuthState = {
+  initialized: boolean;
   user: SessionUser | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
@@ -18,38 +24,50 @@ const AuthContext = createContext<AuthState | null>(null);
 const STORAGE_KEY = 'ctt-demo-session';
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const [initialized, setInitialized] = useState(false);
   const [user, setUser] = useState<SessionUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
+      setInitialized(true);
       return;
     }
 
     try {
-      const parsed = JSON.parse(raw) as { user: SessionUser; token: string };
-      setUser(parsed.user);
+      const parsed = JSON.parse(raw) as { token: string };
       setToken(parsed.token);
+
+      void getSession(parsed.token)
+        .then((session) => {
+          setUser(session.user);
+          setToken(session.token);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: session.token }));
+        })
+        .catch(() => {
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem(STORAGE_KEY);
+        })
+        .finally(() => {
+          setInitialized(true);
+        });
     } catch {
       localStorage.removeItem(STORAGE_KEY);
+      setInitialized(true);
     }
   }, []);
 
   const value: AuthState = {
+    initialized,
     user,
     token,
     async login(email, password) {
       const session = await loginRequest({ email, password });
       setUser(session.user);
       setToken(session.token);
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          user: session.user,
-          token: session.token
-        })
-      );
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: session.token }));
     },
     async logout() {
       await logoutRequest(token ?? undefined);
