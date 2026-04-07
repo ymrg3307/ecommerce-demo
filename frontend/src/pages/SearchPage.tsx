@@ -4,13 +4,13 @@ import { Product, searchProducts } from '../lib/api';
 
 export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get('q') ?? '');
+  const [query, setQuery] = useState(searchParams.get('keyword') ?? '');
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('Search the product catalog by keyword.');
 
   useEffect(() => {
-    const current = searchParams.get('q');
+    const current = searchParams.get('keyword');
     if (!current) {
       return;
     }
@@ -35,7 +35,7 @@ export function SearchPage() {
       return;
     }
 
-    setSearchParams({ q: trimmed });
+    setSearchParams({ keyword: trimmed });
     await runSearch(trimmed);
   }
 
@@ -68,20 +68,25 @@ export function SearchPage() {
         {results.map((product) => (
           <article className="product-card" key={product.id}>
             <img alt={product.name} src={product.image} />
-            <div className="product-meta">
-              <span className="category-pill">{product.category}</span>
-              <h2>{product.name}</h2>
-              <p>{product.description}</p>
+            <div className="product-card-body">
+              <div className="product-meta">
+                <span className="category-pill">{product.category}</span>
+                <h2>{product.name}</h2>
+                <p>{product.description}</p>
+              </div>
+              <div>
+                <div className="product-footer">
+                  <strong>${product.price}</strong>
+                </div>
+                <Link
+                  className="secondary-link"
+                  to={`/products/${product.id}`}
+                  state={{ backTo: `/search${searchParams.toString() ? `?${searchParams.toString()}` : ''}` }}
+                >
+                  View product details
+                </Link>
+              </div>
             </div>
-            <div className="product-footer">
-              <strong>${product.price}</strong>
-              <span className={product.inventory?.status === 'OUT_OF_STOCK' ? 'stock-bad' : 'stock-good'}>
-                {product.inventory?.status === 'OUT_OF_STOCK' ? 'Out of Stock' : 'In Stock'}
-              </span>
-            </div>
-            <Link className="secondary-link" to={`/products/${product.id}`}>
-              View product details
-            </Link>
           </article>
         ))}
       </div>

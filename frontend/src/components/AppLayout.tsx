@@ -16,7 +16,7 @@ export function AppLayout() {
           </div>
         </Link>
         <nav className="nav">
-          <NavLink to="/search">Search</NavLink>
+          {user ? <NavLink to="/search">Search</NavLink> : null}
           <NavLink to="/login">{user ? 'Account' : 'Login'}</NavLink>
         </nav>
         <div className="session-card">
@@ -25,9 +25,7 @@ export function AppLayout() {
               <span>{user.name}</span>
               <button onClick={logout}>Logout</button>
             </>
-          ) : (
-            <span>Guest session</span>
-          )}
+          ) : null}
         </div>
       </header>
       <main className="content">

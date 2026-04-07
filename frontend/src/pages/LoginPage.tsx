@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../state/auth';
 
@@ -9,6 +9,12 @@ export function LoginPage() {
   const [password, setPassword] = useState('Demo@123');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/search', { replace: true });
+    }
+  }, [navigate, user]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -22,7 +28,7 @@ export function LoginPage() {
     try {
       setSubmitting(true);
       await login(email, password);
-      navigate('/search');
+      navigate('/search', { replace: true });
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Login failed.');
     } finally {
