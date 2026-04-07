@@ -1,6 +1,7 @@
 const { createServer } = require('http');
 const { URL } = require('url');
-const { demoProducts } = require('./demo-products');
+require('./env');
+const { searchProducts, getProduct, getStorageMode } = require('./catalog-store');
 
 function json(response, statusCode, payload) {
   response.writeHead(statusCode, {
@@ -12,25 +13,7 @@ function json(response, statusCode, payload) {
   response.end(JSON.stringify(payload));
 }
 
-function searchProducts(keyword) {
-  const normalized = keyword.trim().toLowerCase();
-  if (!normalized) {
-    return [];
-  }
-
-  return demoProducts.filter((product) =>
-    [product.name, product.category, product.description, ...product.tags]
-      .join(' ')
-      .toLowerCase()
-      .includes(normalized)
-  );
-}
-
-function getProduct(id) {
-  return demoProducts.find((product) => product.id === id) ?? null;
-}
-
-function requestHandler(request, response) {
+async function requestHandler(request, response) {
   if (request.method === 'OPTIONS') {
     return json(response, 200, { ok: true });
   }
@@ -38,12 +21,13 @@ function requestHandler(request, response) {
   const url = new URL(request.url, 'http://localhost');
 
   if (request.method === 'GET' && url.pathname === '/products') {
-    return json(response, 200, searchProducts(url.searchParams.get('keyword') || ''));
+    const products = await searchProducts(url.searchParams.get('keyword') || '');
+    return json(response, 200, products);
   }
 
   if (request.method === 'GET' && url.pathname.startsWith('/products/')) {
     const id = url.pathname.replace('/products/', '');
-    const product = getProduct(id);
+    const product = await getProduct(id);
     if (!product) {
       return json(response, 404, { message: 'Product not found.' });
     }
@@ -54,11 +38,18 @@ function requestHandler(request, response) {
   return json(response, 404, { message: 'Not found.' });
 }
 
-const server = createServer(requestHandler);
+const server = createServer((request, response) => {
+  void requestHandler(request, response).catch((error) => {
+    json(response, 500, {
+      message: error instanceof Error ? error.message : 'Internal server error.'
+    });
+  });
+});
 
 if (require.main === module) {
   const port = Number(process.env.PORT || 3002);
   const host = process.env.HOST || '127.0.0.1';
+  console.log(`[catalog-service] product store: ${getStorageMode()}`);
   server.listen(port, host);
 }
 
