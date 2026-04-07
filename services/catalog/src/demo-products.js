@@ -1,19 +1,4 @@
-export type CatalogProduct = {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  description: string;
-  image: string;
-  tags: string[];
-  clothType: string;
-  color: string;
-  material: string;
-  fit: string;
-  brand: string;
-};
-
-export const demoProducts: CatalogProduct[] = [
+const demoProducts = [
   {
     id: 'prod-overshirt-001',
     name: 'Stone Utility Overshirt',
@@ -79,3 +64,5 @@ export const demoProducts: CatalogProduct[] = [
     brand: 'CTT Heritage'
   }
 ];
+
+module.exports = { demoProducts };

@@ -3,12 +3,17 @@
   "private": true,
   "version": "0.1.0",
   "workspaces": [
-    "frontend"
+    "frontend",
+    "services/auth",
+    "services/catalog"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace frontend",
-    "build": "npm run build --workspace frontend",
+    "dev": "npm run dev --workspace auth-service & npm run dev --workspace catalog-service & npm run dev --workspace frontend",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "dev:auth": "npm run dev --workspace auth-service",
+    "dev:catalog": "npm run dev --workspace catalog-service",
+    "build": "npm run build --workspace auth-service && npm run build --workspace catalog-service && npm run build --workspace frontend",
     "test": "npm run test --workspace frontend",
-    "lint": "npm run lint --workspace frontend"
+    "lint": "npm run lint --workspace auth-service && npm run lint --workspace catalog-service && npm run lint --workspace frontend"
   }
 }
