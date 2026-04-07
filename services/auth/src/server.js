@@ -1,7 +1,8 @@
 const { createServer } = require('http');
 const { randomUUID } = require('crypto');
+require('./env');
 const { demoUser } = require('./demo-user');
-const sessionStore = require('./session-store');
+const sessionStore = require('./dynamodb-session-store');
 
 function json(response, statusCode, payload) {
   response.writeHead(statusCode, {
@@ -54,7 +55,7 @@ async function requestHandler(request, response) {
     const expiresAt = new Date(issuedAt.getTime() + 12 * 60 * 60 * 1000);
     const sessionId = randomUUID();
 
-    sessionStore.createSession({
+    await sessionStore.createSession({
       sessionId,
       userId: demoUser.id,
       email: demoUser.email,
@@ -79,7 +80,7 @@ async function requestHandler(request, response) {
   if (request.method === 'POST' && request.url === '/auth/logout') {
     const token = getBearerToken(request);
     if (token) {
-      sessionStore.deleteSession(token);
+      await sessionStore.deleteSession(token);
     }
     return json(response, 200, { success: true });
   }
@@ -90,13 +91,13 @@ async function requestHandler(request, response) {
       return json(response, 401, { message: 'Missing session token.' });
     }
 
-    const session = sessionStore.getSession(token);
+    const session = await sessionStore.getSession(token);
     if (!session) {
       return json(response, 401, { message: 'Invalid session.' });
     }
 
     if (new Date(session.expiresAt).getTime() <= Date.now()) {
-      sessionStore.deleteSession(token);
+      await sessionStore.deleteSession(token);
       return json(response, 401, { message: 'Session expired.' });
     }
 
@@ -126,6 +127,7 @@ const server = createServer((request, response) => {
 if (require.main === module) {
   const port = Number(process.env.PORT || 3001);
   const host = process.env.HOST || '127.0.0.1';
+  console.log(`[auth-service] session store: ${sessionStore.getStorageMode()}`);
   server.listen(port, host);
 }
 

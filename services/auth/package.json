@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "node src/server.js",
-    "build": "node --check src/server.js && node --check src/session-store.js && node --check src/demo-user.js",
+    "build": "node --check src/server.js && node --check src/env.js && node --check src/dynamodb-session-store.js && node --check src/demo-user.js",
     "start": "node src/server.js",
-    "lint": "node --check src/server.js && node --check src/session-store.js && node --check src/demo-user.js"
+    "lint": "node --check src/server.js && node --check src/env.js && node --check src/dynamodb-session-store.js && node --check src/demo-user.js"
   }
 }
