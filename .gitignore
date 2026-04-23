@@ -5,6 +5,7 @@ build
 .env
 .env.*
 !.env.example
+!.env.production
 coverage
 *.log
 frontend/dist

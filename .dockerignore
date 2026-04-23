@@ -1,0 +1,7 @@
+node_modules
+services/auth/node_modules
+services/catalog/node_modules
+frontend/node_modules
+.env
+.DS_Store
+.git

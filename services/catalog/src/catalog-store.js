@@ -1,23 +1,26 @@
 require('./env');
 const { demoProducts } = require('./demo-products');
+const { MongoClient } = require('mongodb');
+
+let client = null;
+let db = null;
+let collection = null;
 
 function getConfig() {
   return {
-    baseUrl: (process.env.MONGODB_DATA_API_BASE_URL || '').replace(/\/$/, ''),
-    apiKey: process.env.MONGODB_DATA_API_KEY || '',
-    dataSource: process.env.MONGODB_DATA_SOURCE || '',
-    database: process.env.MONGODB_DATABASE || '',
+    uri: process.env.MONGODB_URI || '',
+    database: process.env.MONGODB_DATABASE || 'ctt-demo',
     collection: process.env.MONGODB_PRODUCTS_COLLECTION || 'products'
   };
 }
 
 function isConfigured() {
   const config = getConfig();
-  return Boolean(config.baseUrl && config.apiKey && config.dataSource && config.database);
+  return Boolean(config.uri && config.database);
 }
 
 function getStorageMode() {
-  return isConfigured() ? 'mongodb-atlas-data-api' : 'memory';
+  return isConfigured() ? 'mongodb-native' : 'memory';
 }
 
 function escapeRegex(input) {
@@ -28,39 +31,22 @@ function normalizeDocument(document) {
   if (!document) {
     return null;
   }
-
   const { _id, ...product } = document;
   return product;
 }
 
-async function dataApiRequest(action, payload) {
-  const config = getConfig();
+async function connect() {
   if (!isConfigured()) {
-    throw new Error('MongoDB Atlas Data API is not configured.');
+    throw new Error('MongoDB is not configured.');
   }
-
-  const response = await fetch(`${config.baseUrl}/action/${action}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': config.apiKey
-    },
-    body: JSON.stringify({
-      dataSource: config.dataSource,
-      database: config.database,
-      collection: config.collection,
-      ...payload
-    })
-  });
-
-  const data = await response.json().catch(() => null);
-  if (!response.ok) {
-    const message =
-      data?.error || data?.error_code || data?.detail || 'MongoDB Data API request failed.';
-    throw new Error(message);
+  if (!client) {
+    const config = getConfig();
+    client = new MongoClient(config.uri);
+    await client.connect();
+    db = client.db(config.database);
+    collection = db.collection(config.collection);
   }
-
-  return data || {};
+  return collection;
 }
 
 let seedPromise = null;
@@ -72,17 +58,12 @@ async function ensureSeeded() {
 
   if (!seedPromise) {
     seedPromise = (async () => {
-      const existing = await dataApiRequest('findOne', {
-        filter: {}
-      });
-
-      if (existing.document) {
+      const coll = await connect();
+      const existing = await coll.findOne({});
+      if (existing) {
         return;
       }
-
-      await dataApiRequest('insertMany', {
-        documents: demoProducts
-      });
+      await coll.insertMany(demoProducts);
     })().catch((error) => {
       seedPromise = null;
       throw error;
@@ -93,12 +74,10 @@ async function ensureSeeded() {
 }
 
 async function searchProducts(keyword) {
-  const normalized = keyword.trim();
-  if (!normalized) {
-    return [];
-  }
+  const normalized = (keyword || '').trim();
 
   if (!isConfigured()) {
+    if (!normalized) return demoProducts;
     return demoProducts.filter((product) =>
       [product.name, product.category, product.description, ...product.tags]
         .join(' ')
@@ -108,27 +87,27 @@ async function searchProducts(keyword) {
   }
 
   await ensureSeeded();
-  const regex = {
-    $regex: escapeRegex(normalized),
-    $options: 'i'
-  };
-
-  const response = await dataApiRequest('find', {
-    filter: {
+  const coll = await connect();
+  
+  let filter = {};
+  if (normalized) {
+    const regex = {
+      $regex: escapeRegex(normalized),
+      $options: 'i'
+    };
+    filter = {
       $or: [
         { name: regex },
         { category: regex },
         { description: regex },
         { tags: regex }
       ]
-    },
-    sort: {
-      name: 1
-    },
-    limit: 24
-  });
+    };
+  }
 
-  return (response.documents || []).map(normalizeDocument);
+  const documents = await coll.find(filter).sort({ name: 1 }).limit(24).toArray();
+
+  return documents.map(normalizeDocument);
 }
 
 async function getProduct(id) {
@@ -137,13 +116,10 @@ async function getProduct(id) {
   }
 
   await ensureSeeded();
-  const response = await dataApiRequest('findOne', {
-    filter: {
-      id
-    }
-  });
+  const coll = await connect();
+  const document = await coll.findOne({ id });
 
-  return normalizeDocument(response.document);
+  return normalizeDocument(document);
 }
 
 module.exports = {
