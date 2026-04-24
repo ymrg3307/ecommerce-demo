@@ -5,8 +5,9 @@ const { demoUser } = require('./demo-user');
 const sessionStore = require('./dynamodb-session-store');
 
 function json(response, statusCode, payload) {
+  const allowedOrigin = process.env.FRONTEND_ORIGIN || '*';
   response.writeHead(statusCode, {
-    'Access-Control-Allow-Origin': process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+    'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Content-Type': 'application/json'

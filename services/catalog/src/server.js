@@ -5,7 +5,7 @@ const { searchProducts, getProduct, getStorageMode } = require('./catalog-store'
 
 function json(response, statusCode, payload) {
   response.writeHead(statusCode, {
-    'Access-Control-Allow-Origin': process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+    'Access-Control-Allow-Origin': process.env.FRONTEND_ORIGIN || '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Content-Type': 'application/json'
