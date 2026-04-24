@@ -17,5 +17,6 @@ RUN npm ci --omit=dev
 COPY services/auth ./services/auth
 
 # Run the auth service
+ENV HOST=0.0.0.0
 EXPOSE 3001
 CMD ["npm", "start", "--workspace", "auth-service"]

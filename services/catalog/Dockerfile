@@ -17,5 +17,6 @@ RUN npm ci --omit=dev
 COPY services/catalog ./services/catalog
 
 # Run the catalog service
+ENV HOST=0.0.0.0
 EXPOSE 3002
 CMD ["npm", "start", "--workspace", "catalog-service"]

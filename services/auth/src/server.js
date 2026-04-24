@@ -113,6 +113,10 @@ async function requestHandler(request, response) {
     });
   }
 
+  if (request.method === 'GET' && request.url === '/') {
+    return json(response, 200, { status: 'healthy', service: 'auth-service' });
+  }
+
   return json(response, 404, { message: 'Not found.' });
 }
 

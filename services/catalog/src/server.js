@@ -35,6 +35,10 @@ async function requestHandler(request, response) {
     return json(response, 200, product);
   }
 
+  if (request.method === 'GET' && url.pathname === '/') {
+    return json(response, 200, { status: 'healthy', service: 'catalog-service' });
+  }
+
   return json(response, 404, { message: 'Not found.' });
 }
 
