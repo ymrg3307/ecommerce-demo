@@ -45,10 +45,6 @@ export function LoginPage() {
           The seeded credentials are already filled so you can focus on the demo script instead of setup
           friction.
         </p>
-        <div className="credential-card">
-          <p>Demo email: demo@cttshop.com</p>
-          <p>Demo password: Demo@123</p>
-        </div>
       </div>
       <form className="panel" onSubmit={handleSubmit}>
         <h2>{user ? 'You are logged in' : 'Sign in'}</h2>
