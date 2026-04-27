@@ -1,3 +1,3 @@
 export const demoConfig = {
-  guid: '5835bc0f-8823-49fa-bc76-0f02b6c4eacf'
+  guid: 'c1cf5b05-91cd-42c8-9a9c-f4fb643c5076'
 };
